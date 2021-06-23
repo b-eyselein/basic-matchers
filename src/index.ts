@@ -1,5 +1,2 @@
-console.info('TODO!');
-
-export function doAnything(): void {
-  console.info('doing anything...');
-}
+export {Match, findUnambiguousMatches, MatchFunc, multiStepMatching} from './matching';
+export {MatchingResult, matchingResultQuality} from './matchingResult';
