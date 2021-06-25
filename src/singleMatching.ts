@@ -1,5 +1,6 @@
 import {BaseR} from './matchingResult';
-import {Match, MatchFunc} from './matching';
+import {MatchFunc} from './matching';
+import {Match} from './match';
 
 interface FindMatchResult<U, S = U, R = BaseR> {
   match: Match<U, S, R>;

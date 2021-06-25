@@ -14,7 +14,8 @@
   "scripts": {
     "build": "tsc",
     "prepublish": "tsc",
-    "test": "jest"
+    "test": "jest",
+    "lint": "eslint src"
   },
   "keywords": [],
   "author": "Björn Eyselein",
@@ -26,6 +27,7 @@
     "@typescript-eslint/parser": "^4.28.0",
     "eslint": "^7.29.0",
     "jest": "^27.0.5",
+    "ts-jest": "^27.0.3",
     "ts-node": "^10.0.0",
     "typescript": "^4.3.4"
   }
