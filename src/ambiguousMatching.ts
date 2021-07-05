@@ -1,7 +1,7 @@
-import {ambiguousMatchingResultQuality, Match, MatchingResult} from './matchingResult';
+import {AmbiguousMatchAnalysis, AmbiguousMatchingResult, ambiguousMatchingResultQuality, Match} from './matchingResult';
 
 interface MatchGenerationResult<U, S = U> {
-  match: Match<U, S>;
+  match: Match<U, S, AmbiguousMatchAnalysis>;
   newNotMatchedSamples: S[];
 }
 
@@ -10,9 +10,10 @@ function generateAllPossibleMatches<U, S = U>(userSolutionEntry: U, sampleSoluti
   const result: MatchGenerationResult<U, S>[] = [];
 
   const prior: S[] = [];
-  const later: S[] = sampleSolutionEntries;
+  const later: S[] = [...sampleSolutionEntries];
 
   while (later.length > 0) {
+    // FIXME: do not use shift or else you always have to copy the array!
     const sampleSolutionEntry = later.shift()!;
 
     const certainty = assessMatchCertainty(userSolutionEntry, sampleSolutionEntry);
@@ -31,26 +32,22 @@ function generateAllPossibleMatches<U, S = U>(userSolutionEntry: U, sampleSoluti
 }
 
 
-export function findAmbiguousMatches<U, S = U>(
-  userValues: U[],
-  sampleValues: S[],
-  assessMatchCertainty: (u: U, s: S) => number,
-  certaintyThreshold = 0
-): MatchingResult<U, S> {
+export function findAmbiguousMatches<U, S = U>(userValues: U[], sampleValues: S[], assessMatchCertainty: (u: U, s: S) => number, certaintyThreshold = 0): AmbiguousMatchingResult<U, S> {
 
-  const reductionFunc: (mr: MatchingResult<U, S>[], c: U) => MatchingResult<U, S>[] = (allMatchingResults, userSolutionEntry) =>
+  const reductionFunc: (mr: AmbiguousMatchingResult<U, S>[], c: U) => AmbiguousMatchingResult<U, S>[] = (allMatchingResults, userSolutionEntry) =>
     allMatchingResults.flatMap(({matches, notMatchedUser, notMatchedSample}) => {
 
-      const allPossibleMatches: MatchGenerationResult<U, S>[] = generateAllPossibleMatches(userSolutionEntry, notMatchedSample, assessMatchCertainty)
+      const allPossibleMatches: MatchGenerationResult<U, S>[] = generateAllPossibleMatches(userSolutionEntry, notMatchedSample, assessMatchCertainty, certaintyThreshold)
         .filter(({match}) => match.matchAnalysis.certainty > certaintyThreshold);
 
       if (allPossibleMatches.length === 0) {
         return {matches, notMatchedUser: [...notMatchedUser, userSolutionEntry], notMatchedSample};
       } else {
-        // FIXME: remove matched sampleSolutionEntry from notMatchedSample!
-        return allPossibleMatches.map(({match, newNotMatchedSamples}) => {
-          return {matches: [...matches, match], notMatchedUser, notMatchedSample: newNotMatchedSamples};
-        });
+        return allPossibleMatches.map(({match, newNotMatchedSamples}) => ({
+          matches: [...matches, match],
+          notMatchedUser,
+          notMatchedSample: newNotMatchedSamples
+        }));
       }
     });
 
