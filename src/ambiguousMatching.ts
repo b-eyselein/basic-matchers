@@ -1,12 +1,11 @@
-import {AmbiguousMatchingResult, ambiguousMatchingResultQuality} from './matchingResult';
-import {AmbiguousMatch} from './match';
+import {ambiguousMatchingResultQuality, Match, MatchingResult} from './matchingResult';
 
 interface MatchGenerationResult<U, S = U> {
-  match: AmbiguousMatch<U, S>;
+  match: Match<U, S>;
   newNotMatchedSamples: S[];
 }
 
-function generateAllPossibleMatches<U, S = U>(userSolutionEntry: U, sampleSolutionEntries: S[], assessMatchCertainty: (u: U, s: S) => number): MatchGenerationResult<U, S>[] {
+function generateAllPossibleMatches<U, S = U>(userSolutionEntry: U, sampleSolutionEntries: S[], assessMatchCertainty: (u: U, s: S) => number, certaintyThreshold = 0): MatchGenerationResult<U, S>[] {
 
   const result: MatchGenerationResult<U, S>[] = [];
 
@@ -18,10 +17,12 @@ function generateAllPossibleMatches<U, S = U>(userSolutionEntry: U, sampleSoluti
 
     const certainty = assessMatchCertainty(userSolutionEntry, sampleSolutionEntry);
 
-    result.push({
-      match: {userSolutionEntry, sampleSolutionEntry, certainty},
-      newNotMatchedSamples: [...prior, ...later]
-    });
+    if (certainty > certaintyThreshold) {
+      result.push({
+        match: {userSolutionEntry, sampleSolutionEntry, certaintyPercentage: certainty},
+        newNotMatchedSamples: [...prior, ...later]
+      });
+    }
 
     prior.push(sampleSolutionEntry);
   }
@@ -35,15 +36,13 @@ export function findAmbiguousMatches<U, S = U>(
   sampleValues: S[],
   assessMatchCertainty: (u: U, s: S) => number,
   certaintyThreshold = 0
-): AmbiguousMatchingResult<U, S> {
+): MatchingResult<U, S> {
 
-  type Res = AmbiguousMatchingResult<U, S>;
-
-  const reductionFunc: (mr: Res[], c: U) => Res[] = (allMatchingResults, userSolutionEntry) =>
+  const reductionFunc: (mr: MatchingResult<U, S>[], c: U) => MatchingResult<U, S>[] = (allMatchingResults, userSolutionEntry) =>
     allMatchingResults.flatMap(({matches, notMatchedUser, notMatchedSample}) => {
 
       const allPossibleMatches: MatchGenerationResult<U, S>[] = generateAllPossibleMatches(userSolutionEntry, notMatchedSample, assessMatchCertainty)
-        .filter(({match}) => match.certainty > certaintyThreshold);
+        .filter(({match}) => match.certaintyPercentage > certaintyThreshold);
 
       if (allPossibleMatches.length === 0) {
         return {matches, notMatchedUser: [...notMatchedUser, userSolutionEntry], notMatchedSample};
@@ -56,6 +55,6 @@ export function findAmbiguousMatches<U, S = U>(
     });
 
   return userValues
-    .reduce<Res[]>(reductionFunc, [{matches: [], notMatchedUser: [], notMatchedSample: sampleValues}])
+    .reduce(reductionFunc, [{matches: [], notMatchedUser: [], notMatchedSample: sampleValues}])
     .sort((a, b) => ambiguousMatchingResultQuality(a) - ambiguousMatchingResultQuality(b))[0];
 }

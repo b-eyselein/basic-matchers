@@ -1,29 +1,26 @@
-import {BaseR} from './matchingResult';
-import {MatchFunc} from './matching';
-import {Match} from './match';
+import {MatchFunc} from './certainMatching';
+import {Match} from './matchingResult';
 
-interface FindMatchResult<U, S = U, R = BaseR> {
-  match: Match<U, S, R>;
+interface FindMatchResult<U, S = U> {
+  match: Match<U, S>;
   remainingSampleValues: S[];
 }
 
-export function findSingleUnambiguousMatch<U, S = U, R = BaseR>(userSolutionEntry: U, sampleValues: S[], checkFunc: MatchFunc<U, S, R>): FindMatchResult<U, S, R> | undefined {
+export function findSingleUnambiguousMatch<U, S = U>(userSolutionEntry: U, sampleValues: S[], checkFunc: MatchFunc<U, S>): FindMatchResult<U, S> | undefined {
 
   type ReduceObject = {
-    match?: Match<U, S, R>;
+    match?: Match<U, S>;
     checkedSampleValues: S[];
   }
 
-  const reductionFunc: (ro: ReduceObject, current: S) => ReduceObject = ({match, checkedSampleValues}, current) => {
+  const reductionFunc: (ro: ReduceObject, current: S) => ReduceObject = ({match, checkedSampleValues}, sampleSolutionEntry) => {
     if (match) {
       // A match was already found, ignore this sample value
-      return {match, checkedSampleValues: [...checkedSampleValues, current]};
+      return {match, checkedSampleValues: [...checkedSampleValues, sampleSolutionEntry]};
     } else {
-      const matchResult: R | undefined = checkFunc(userSolutionEntry, current);
-
-      return matchResult
-        ? {match: {userSolutionEntry, sampleSolutionEntry: current, matchResult}, checkedSampleValues}
-        : {match: undefined, checkedSampleValues: [...checkedSampleValues, current]};
+      return checkFunc(userSolutionEntry, sampleSolutionEntry)
+        ? {match: {userSolutionEntry, sampleSolutionEntry, certaintyPercentage: 'CERTAIN'}, checkedSampleValues}
+        : {match: undefined, checkedSampleValues: [...checkedSampleValues, sampleSolutionEntry]};
     }
   };
 

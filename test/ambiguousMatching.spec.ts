@@ -1,4 +1,4 @@
-import {findAmbiguousMatches, levenshtein} from '../src';
+import {findAmbiguousMatches, levenshtein, MatchingResult} from '../src';
 
 const levenshteinMatchAssessment: (a: string, b: string) => number = (a, b) => {
   const distance = levenshtein(a, b);
@@ -10,13 +10,23 @@ const levenshteinMatchAssessment: (a: string, b: string) => number = (a, b) => {
 
 describe('Ambiguous Matching', () => {
 
-  test('x', () => {
+  test('should match with levenshtein distance', () => {
     const userValues = ['XyZ', 'Abc', 'Def', 'ghi'];
     const sampleValues = ['def', 'abc', 'jkl', 'xYZ'];
 
-    const matchingResult = findAmbiguousMatches(userValues, sampleValues, levenshteinMatchAssessment);
+    const matchingResult: MatchingResult<string> = findAmbiguousMatches(userValues, sampleValues, levenshteinMatchAssessment);
 
-    console.info(JSON.stringify(matchingResult, null, 2));
+    const expected: MatchingResult<string> = {
+      matches: [
+        {userSolutionEntry: 'XyZ', sampleSolutionEntry: 'xYZ', certaintyPercentage: 1 / 3},
+        {userSolutionEntry: 'Abc', sampleSolutionEntry: 'abc', certaintyPercentage: 2 / 3},
+        {userSolutionEntry: 'Def', sampleSolutionEntry: 'def', certaintyPercentage: 2 / 3}
+      ],
+      notMatchedSample: [],
+      notMatchedUser: ['ghi']
+    };
+
+    expect(matchingResult).toEqual(expected);
   });
 
 });

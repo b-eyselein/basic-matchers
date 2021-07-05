@@ -1,27 +1,19 @@
-import {AmbiguousMatch, BaseMatch, Match} from './match';
+export interface Match<U, S = U> {
+  userSolutionEntry: U;
+  sampleSolutionEntry: S;
+  certaintyPercentage: 'CERTAIN' | number;
+}
 
-export type BaseR = Record<string, unknown>
-
-export interface BaseMatchingResult<U, S, M extends BaseMatch<U, S>> {
-  matches: M[];
+export interface MatchingResult<U, S = U> {
+  matches: Match<U, S>[];
   notMatchedUser: U[];
   notMatchedSample: S[];
 }
 
-export type MatchingResult<U, S = U, R = BaseR> = BaseMatchingResult<U, S, Match<U, S, R>>;
-
-export function matchingResultQuality<U, S = U, R = BaseR>({
-  matches,
-  notMatchedUser,
-  notMatchedSample
-}: MatchingResult<U, S, R>): number {
+export function certainMatchingResultQuality<U, S = U>({matches, notMatchedUser, notMatchedSample}: MatchingResult<U, S>): number {
   return matches.length / (matches.length + notMatchedUser.length + notMatchedSample.length);
 }
 
-
-export type AmbiguousMatchingResult<U, S = U> = BaseMatchingResult<U, S, AmbiguousMatch<U, S>>;
-
-export function ambiguousMatchingResultQuality<U, S = U>({matches}: AmbiguousMatchingResult<U, S>): number {
-  return matches.map(({certainty}) => certainty).reduce((a, b) => a + b, 0);
+export function ambiguousMatchingResultQuality<U, S = U>({matches}: MatchingResult<U, S>): number {
+  return matches.reduce<number>((a, b) => a + (b.certaintyPercentage === 'CERTAIN' ? 100 : b.certaintyPercentage), 0);
 }
-
