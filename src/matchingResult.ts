@@ -1,11 +1,15 @@
-export interface Match<U, S = U> {
-  userSolutionEntry: U;
-  sampleSolutionEntry: S;
-  certaintyPercentage: 'CERTAIN' | number;
+export interface AmbiguousMatchAnalysis {
+  certainty: number;
 }
 
-export interface MatchingResult<U, S = U> {
-  matches: Match<U, S>[];
+export interface Match<U, S = U, MA = AmbiguousMatchAnalysis> {
+  userSolutionEntry: U;
+  sampleSolutionEntry: S;
+  matchAnalysis: MA;
+}
+
+export interface MatchingResult<U, S = U, MA = AmbiguousMatchAnalysis> {
+  matches: Match<U, S, MA>[];
   notMatchedUser: U[];
   notMatchedSample: S[];
 }
@@ -15,5 +19,5 @@ export function certainMatchingResultQuality<U, S = U>({matches, notMatchedUser,
 }
 
 export function ambiguousMatchingResultQuality<U, S = U>({matches}: MatchingResult<U, S>): number {
-  return matches.reduce<number>((a, b) => a + (b.certaintyPercentage === 'CERTAIN' ? 100 : b.certaintyPercentage), 0);
+  return matches.reduce<number>((a, b) => a + b.matchAnalysis.certainty, 0);
 }

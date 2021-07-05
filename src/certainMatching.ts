@@ -1,11 +1,11 @@
 import {MatchingResult} from './matchingResult';
-import {findSingleUnambiguousMatch} from './singleMatching';
+import {AnyObject, findSingleUnambiguousMatch} from './singleMatching';
 
-export type MatchFunc<U, S = U> = (userValue: U, sampleValue: S) => boolean;
+export type MatchFunc<U, S = U, R = AnyObject> = (userValue: U, sampleValue: S) => R | undefined;
 
-export function findUnambiguousMatches<U, S = U>(userValues: U[], sampleValues: S[], checkFunc: MatchFunc<U, S>): MatchingResult<U, S> {
+export function findUnambiguousMatches<U, S = U, R = AnyObject>(userValues: U[], sampleValues: S[], checkFunc: MatchFunc<U, S, R>): MatchingResult<U, S, R> {
 
-  const reductionFunc: (mr: MatchingResult<U, S>, c: U) => MatchingResult<U, S> = ({matches, notMatchedUser, notMatchedSample}, current) => {
+  const reductionFunc: (mr: MatchingResult<U, S, R>, c: U) => MatchingResult<U, S, R> = ({matches, notMatchedUser, notMatchedSample}, current) => {
 
     const maybeMatch = findSingleUnambiguousMatch(current, notMatchedSample, checkFunc);
 

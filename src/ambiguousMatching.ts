@@ -19,7 +19,7 @@ function generateAllPossibleMatches<U, S = U>(userSolutionEntry: U, sampleSoluti
 
     if (certainty > certaintyThreshold) {
       result.push({
-        match: {userSolutionEntry, sampleSolutionEntry, certaintyPercentage: certainty},
+        match: {userSolutionEntry, sampleSolutionEntry, matchAnalysis: {certainty}},
         newNotMatchedSamples: [...prior, ...later]
       });
     }
@@ -42,7 +42,7 @@ export function findAmbiguousMatches<U, S = U>(
     allMatchingResults.flatMap(({matches, notMatchedUser, notMatchedSample}) => {
 
       const allPossibleMatches: MatchGenerationResult<U, S>[] = generateAllPossibleMatches(userSolutionEntry, notMatchedSample, assessMatchCertainty)
-        .filter(({match}) => match.certaintyPercentage > certaintyThreshold);
+        .filter(({match}) => match.matchAnalysis.certainty > certaintyThreshold);
 
       if (allPossibleMatches.length === 0) {
         return {matches, notMatchedUser: [...notMatchedUser, userSolutionEntry], notMatchedSample};

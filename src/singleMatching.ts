@@ -1,15 +1,17 @@
 import {MatchFunc} from './certainMatching';
 import {Match} from './matchingResult';
 
-interface FindMatchResult<U, S = U> {
-  match: Match<U, S>;
+export type AnyObject = Record<string, unknown>;
+
+interface FindMatchResult<U, S = U, R = AnyObject> {
+  match: Match<U, S, R>;
   remainingSampleValues: S[];
 }
 
-export function findSingleUnambiguousMatch<U, S = U>(userSolutionEntry: U, sampleValues: S[], checkFunc: MatchFunc<U, S>): FindMatchResult<U, S> | undefined {
+export function findSingleUnambiguousMatch<U, S = U, R = AnyObject>(userSolutionEntry: U, sampleValues: S[], checkFunc: MatchFunc<U, S, R>): FindMatchResult<U, S, R> | undefined {
 
   type ReduceObject = {
-    match?: Match<U, S>;
+    match?: Match<U, S, R>;
     checkedSampleValues: S[];
   }
 
@@ -18,8 +20,11 @@ export function findSingleUnambiguousMatch<U, S = U>(userSolutionEntry: U, sampl
       // A match was already found, ignore this sample value
       return {match, checkedSampleValues: [...checkedSampleValues, sampleSolutionEntry]};
     } else {
-      return checkFunc(userSolutionEntry, sampleSolutionEntry)
-        ? {match: {userSolutionEntry, sampleSolutionEntry, certaintyPercentage: 'CERTAIN'}, checkedSampleValues}
+
+      const matchAnalysis = checkFunc(userSolutionEntry, sampleSolutionEntry);
+
+      return matchAnalysis
+        ? {match: {userSolutionEntry, sampleSolutionEntry, matchAnalysis}, checkedSampleValues}
         : {match: undefined, checkedSampleValues: [...checkedSampleValues, sampleSolutionEntry]};
     }
   };

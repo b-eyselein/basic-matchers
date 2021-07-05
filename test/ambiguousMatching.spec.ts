@@ -18,9 +18,9 @@ describe('Ambiguous Matching', () => {
 
     const expected: MatchingResult<string> = {
       matches: [
-        {userSolutionEntry: 'XyZ', sampleSolutionEntry: 'xYZ', certaintyPercentage: 1 / 3},
-        {userSolutionEntry: 'Abc', sampleSolutionEntry: 'abc', certaintyPercentage: 2 / 3},
-        {userSolutionEntry: 'Def', sampleSolutionEntry: 'def', certaintyPercentage: 2 / 3}
+        {userSolutionEntry: 'XyZ', sampleSolutionEntry: 'xYZ', matchAnalysis: {certainty: 1 / 3}},
+        {userSolutionEntry: 'Abc', sampleSolutionEntry: 'abc', matchAnalysis: {certainty: 2 / 3}},
+        {userSolutionEntry: 'Def', sampleSolutionEntry: 'def', matchAnalysis: {certainty: 2 / 3}}
       ],
       notMatchedSample: [],
       notMatchedUser: ['ghi']
