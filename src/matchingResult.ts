@@ -1,3 +1,5 @@
+import {AnyObject} from './singleMatching';
+
 export interface AmbiguousMatchAnalysis {
   certainty: number;
 }
@@ -14,7 +16,7 @@ export interface MatchingResult<U, S = U, MA = AmbiguousMatchAnalysis> {
   notMatchedSample: S[];
 }
 
-export function certainMatchingResultQuality<U, S = U>({matches, notMatchedUser, notMatchedSample}: MatchingResult<U, S>): number {
+export function certainMatchingResultQuality<U, S = U, R = AnyObject>({matches, notMatchedUser, notMatchedSample}: MatchingResult<U, S, R>): number {
   return matches.length / (matches.length + notMatchedUser.length + notMatchedSample.length);
 }
 
